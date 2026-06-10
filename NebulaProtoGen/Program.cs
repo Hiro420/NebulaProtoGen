@@ -63,7 +63,7 @@ class Program
 				reviewServerGarbleKey = "xNdVF^XTa6T3HCUATMQ@sKMLzAw&%L!3"
 			};
 		}
-		
+
 		ManifestApp app = new();
 
 		ClientDiff? ret = app.FetchVendor(vendor);
@@ -97,7 +97,7 @@ class Program
 			string outDir = Path.Combine(baseOutputDir, Path.GetFileNameWithoutExtension(strPath) ?? "");
 			using MemoryStream mspb = new(XXTeaHelper.Decrypt(entry.data, CRYPT_TEXT_ASSET_KEY));
 			FileDescriptorSet descSet = Serializer.Deserialize<FileDescriptorSet>(mspb);
-			//File.WriteAllBytes(Path.GetFileName(strPath), mspb.ToArray());
+			// File.WriteAllBytes(Path.GetFileName(strPath), mspb.ToArray());
 			var fileSystem = new LocalFileSystem();
 			var coreService = new ProtoDescriptorService([], logger);
 			var service = new ProtoDumpService(fileSystem, logger, coreService, coreService);
