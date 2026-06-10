@@ -512,6 +512,17 @@ public sealed partial class ProtoDescriptorService
 	{
 		PushDescriptorName(field);
 
+		if (field.label == 0)
+		{
+			emitFieldLabel = false;
+		}
+		else if (source.syntax == "proto3"
+			&& field.label == FieldDescriptorProto.Label.LABEL_OPTIONAL
+			&& !field.proto3_optional)
+		{
+			emitFieldLabel = false;
+		}
+
 		var type = ResolveType(field);
 
 		if (field.label == FieldDescriptorProto.Label.LABEL_REPEATED
