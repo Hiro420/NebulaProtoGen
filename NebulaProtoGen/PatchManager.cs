@@ -12,26 +12,49 @@ internal static class PatchManager
 
 	public static List<PatchEntry> FindPatches(ClientDiff diff, string baseFileName)
 	{
+		var baseDiff = diff.Diffs.FirstOrDefault(entry =>
+			string.Equals(entry.FileName, baseFileName, StringComparison.OrdinalIgnoreCase));
+
+		if (baseDiff is null)
+			return [];
+
 		var patches = new List<PatchEntry>();
 
 		foreach (var entry in diff.Diffs)
 		{
-			var m = s_patchPattern.Match(entry.FileName);
-			if (!m.Success) continue;
+			var match = s_patchPattern.Match(entry.FileName);
+			if (!match.Success)
+				continue;
 
-			string baseName = m.Groups[3].Value;
-			if (!string.Equals(baseName, baseFileName, StringComparison.OrdinalIgnoreCase))
+			string patchBaseName = match.Groups[3].Value;
+			if (!string.Equals(patchBaseName, baseFileName, StringComparison.OrdinalIgnoreCase))
+				continue;
+
+			if (!int.TryParse(match.Groups[1].Value, out int index))
 				continue;
 
 			patches.Add(new PatchEntry(
-				int.Parse(m.Groups[1].Value),
-				m.Groups[2].Value,
-				baseName,
+				index,
+				match.Groups[2].Value,
+				patchBaseName,
 				entry));
 		}
 
 		patches.Sort((a, b) => a.Index.CompareTo(b.Index));
-		return patches;
+
+		var validPatches = new List<PatchEntry>();
+		long currentVersion = baseDiff.Version;
+
+		foreach (var patch in patches)
+		{
+			if (patch.Diff.Version <= currentVersion)
+				break;
+
+			validPatches.Add(patch);
+			currentVersion = patch.Diff.Version;
+		}
+
+		return validPatches;
 	}
 
 	public static long GetEffectiveVersion(FileDiff baseDiff, IReadOnlyList<PatchEntry> patches)
